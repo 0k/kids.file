@@ -1,0 +1,5 @@
+NAME="kids.file"
+DESCRIPTION="Kids file management library"
+EMAIL="valentin.lab@kalysto.org"
+AUTHOR="Valentin LAB"
+AUTHOR_EMAIL="$AUTHOR <$EMAIL>"
