@@ -20,7 +20,7 @@ except ImportError:
 ## Ensure that ``./autogen.sh`` is run prior to using ``setup.py``
 ##
 
-if "%%short-version%%".startswith("%%"):
+if "0.0.1".startswith("%%"):
     import os.path, sys
     if not os.path.exists('./autogen.sh'):
         sys.stderr.write(

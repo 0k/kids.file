@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
+>>> False
+False
+
+"""
 
 from __future__ import with_statement
 
@@ -27,6 +32,70 @@ else:
         pass
 
 
+class Codec(object):
+
+    def encode(self, value):
+        raise NotImplementedError
+
+    def decode(self, value):
+        raise NotImplementedError
+
+    def __union__(self, value):
+        if not isinstance(value, Codec):
+            raise TypeError('Can not pipe with non-codec value: %r' % value)
+        return PipeCodec(a, b)
+
+
+## To develop when I'll have time:
+
+## codecs should be composable:
+
+##
+## file_contents_unicode = (fs("myfile") | codec.auto).contents
+## url_contents_binary = url("myurl").read(10)   ## 10 first bytes of url
+## zip_contents
+
+## construct readers:
+##     file_get_contents = (fs | codec.preferredstringencoding)
+## or:
+##     file_get_contents = (fs |
+##
+## A codec is not a compressor or decompressor: it's a chain
+##   the chain can or can't be reversable. It'll be reversable
+##   only if element of the chain give bothways.
+##
+## file_put_content = reverse(file_get_contents)
+##
+## You put a value at one end: the "filename" for example, and it
+## get transformer to its binary content, then get decoded to python string.
+##
+## In the other way: you put a value at one end: the content string, and it
+## gets encoded to binary, then pushed into a given file.
+##
+## if you give the name, you can really built a full bothway passage of codecs
+## and you could add gzip, and YAML to python dict decoder.
+##
+## Stream interface (open/read) can be concerved on stream codecs.
+## Discrete interface (get_content) may be much broader and can transform any python type.
+##
+
+class PipeCodec(Codec):
+
+    def __init__(self, codec1, codec2):
+        for codec in (codec1, codec2):
+            if not isinstance(codec, Codec):
+                raise TypeError("Can't pipe with non-codec value: %r"
+                                % codec)
+        self.codec1 = codec1
+        self.codec2 = codec2
+
+    def encode(self, value):
+        return self.codec2.encode(self.codec1.encode(value))
+
+    def decode(self, value):
+        return self.codec1.decode(self.codec2.decode(value))
+
+
 def file_get_contents(filename, binary=False, encoding=None, uncompress=None):
     """Returns string content from filename"""
     ## notes that uncompress and encoding seems to be the same thing.
@@ -48,12 +117,16 @@ def file_get_contents(filename, binary=False, encoding=None, uncompress=None):
             s = s.decode(encoding)
     return s
 
+get_contents = file_get_contents
+
 
 def file_put_contents(filename, string):
     """Write string to filename."""
 
     with open(filename, 'w') as f:
         f.write(string)
+
+put_contents = file_put_contents
 
 
 def mkdir(dirs, recursive=False, mode=None):
@@ -136,3 +209,10 @@ def file_zip(filename, destination=''):
         out.write(file_get_contents(filename, binary=True))
     finally:
         out.close()
+
+
+def basename(filename, suffix=None):
+    bname = os.path.basename(filename)
+    if suffix and bname.endswith(suffix):
+        bname = bname[0:-len(suffix)]
+    return bname

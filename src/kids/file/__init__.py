@@ -1,4 +1,5 @@
 
 
 from .file import file_get_contents, file_put_contents, tmpfile, tmpdir, \
-     rmtree, unlink, file_zip, mkdir, touch, chown
+     rmtree, unlink, file_zip, mkdir, touch, chown, basename, get_contents, \
+     put_contents
