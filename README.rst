@@ -235,3 +235,13 @@ Well, this package is really small, and you've just read the tests.
 To execute them, install ``nosetest``, and run::
 
     nosetests
+
+
+License
+=======
+
+Copyright (c) 2015 Valentin Lab.
+
+Licensed under the `BSD License`_.
+
+.. _BSD License: http://raw.github.com/0k/kids.file/master/LICENSE
