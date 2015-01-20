@@ -27,6 +27,7 @@ else:
         pass
 
 
+## XXXvlab: I don't like all these arguments...
 def file_get_contents(filename, binary=False, encoding=None, uncompress=None):
     """Returns string content from filename"""
     ## notes that uncompress and encoding seems to be the same thing.
@@ -87,14 +88,30 @@ def tmpfile(content=None):
         file_put_contents(_tmpfile, content)
     return _tmpfile
 
+
+## aliasing, because still not sure of the naming convention
+mk_tmp_file = tmpfile
+
 ## importing these KIDS methods from other modules
-tmpdir = tempfile.mkdtemp
-rmtree = shutil.rmtree
+mk_tmp_dir = tmpdir = tempfile.mkdtemp
 
 
-def unlink(filename, force=False):
+def rm(*filenames, **options):
+    force = options.pop("force", False)
+    recursive = options.pop("recursive", False)
+    if len(options):
+        raise SyntaxError(
+            "Unknown keyword argument %s." % (", ".join("%r" % k for k in options.keys())))
+    if len(filenames) != 1 or isinstance(filenames[0], list):
+        for filename in filenames:
+            rm(filename, force=force, recursive=recursive)
+        return
+    filename = filenames[0]
     try:
-        os.unlink(filename)
+        if recursive:
+            shutil.rmtree(filename)
+        else:
+            os.unlink(filename)
     except (OSError, FileNotFoundError) as e:
         # catch file does not exists
         if e.errno == 2:
@@ -110,6 +127,9 @@ def unlink(filename, force=False):
                 raise IsADirectoryError(str(e))
         else:
             raise
+
+## aliasing, because still not sure of the naming convention
+unlink = rm
 
 
 def chown(path, user, group=None, recursive=False):
@@ -140,3 +160,7 @@ def file_zip(filename, destination=''):
         out.write(file_get_contents(filename, binary=True))
     finally:
         out.close()
+    return dest
+
+## aliasing, because still not sure of the naming convention
+zip = file_zip  ## pylint: disable=W0622

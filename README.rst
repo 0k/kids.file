@@ -21,83 +21,110 @@ Documentation
 =============
 
 
-tmpfile, file_get_contents, file_put_contents
----------------------------------------------
+tmp, get_contents, put_contents
+-------------------------------
 
 Let's create a new temporary file containing the string 'bonjour'::
 
-    >>> from kids.file import tmpfile, file_get_contents, file_put_contents
-    >>> f = tmpfile(content='bonjour')
+    >>> import kids.file as kf
+    >>> filepath = kf.mk_tmp_file(content='bonjour')
 
-``f`` holds the file path of the temporary file. Let's check what is the file
-content with ``file_get_contents``::
+``filepath`` holds the file path of the temporary file. Let's check what is the file
+content with ``get_contents``::
 
-    >>> file_get_contents(f)
+    >>> kf.get_contents(filepath)
     'bonjour'
 
-Let's now put some new content in this file, thanks to ``file_put_contents``::
+Let's now put some new content in this file, thanks to ``put_contents``::
 
-    >>> file_put_contents(f, 'hello\nfriend')
-    >>> file_get_contents(f)
+    >>> kf.put_contents(filepath, 'hello\nfriend')
+    >>> kf.get_contents(filepath)
     'hello\nfriend'
 
 This is it.
 
 
-unlink
-------
+remove files
+------------
 
-This version of unlink has a special argument that suppress exception on
-unexistent file::
+To remove files, you can use ``rm`` (or ``rm`` which is an alias).
 
-    >>> from kids.file import unlink
-    >>> unlink(f)
-    >>> unlink(f)  ## doctest: +ELLIPSIS
+This version works as python ``rm`` with some added usefull behaviors:::
+
+    >>> kf.rm(filepath)
+
+The file was removed. But notice if we try it again::
+
+    >>> kf.rm(filepath)  ## doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     FileNotFoundError: [Errno 2] No such file or directory: '...'
 
-This will not cast an exception::
+To mimick the behavior of ``rm`` and the usage of its ``-f``, you have also
+a ``force`` keyword argument, that will not cast an exception on non-existent
+file::
 
-    >>> unlink(f, force=True)
+    >>> kf.rm(filepath, force=True)
 
 While it will continue to cast an exception whenever it is NOT a ``file not
 found`` error::
 
-    >>> unlink('/', force=True)
+    >>> kf.rm('/', force=True)
     Traceback (most recent call last):
     ...
     IsADirectoryError: [Errno 21] Is a directory: '/'
+
+And of course, there's a ``recursive`` argument which remove directories with all
+files and subdirectories (as would shell ``rm`` on a Unix like system shell)::
+
+    >>> tmp_dirpath = kf.mk_tmp_dir()
+    >>> kf.rm(tmp_dirpath, recursive=True)
+    >>> kf.rm(tmp_dirpath, recursive=True)  ## doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    FileNotFoundError: [Errno 2] No such file or directory: '...'
+    >>> kf.rm(tmp_dirpath, recursive=True, force=True)
+
+It supports also multiple files::
+
+    >>> filepath1 = kf.mk_tmp_file(content='foo')
+    >>> filepath2 = kf.mk_tmp_file(content='bar')
+    >>> kf.rm(filepath1, filepath2)
+
+And of course still catches bad usage, and tries to be clear about it::
+
+    >>> kf.rm(filepath1, foo=True)
+    Traceback (most recent call last):
+    ...
+    SyntaxError: Unknown keyword argument 'foo'.
 
 
 chown, mkdir, touch
 -------------------
 
-Let's now create a small tree directory (using ``tmpdir``, ``mkdir``,
+A ``chown`` function is provided, with an optional ``recursive`` keyword argument.
+
+Let's now create a small tree directory (using ``mk_tmp_dir``, ``mkdir``,
 ``touch``)::
 
-    >>> from kids.file import tmpdir, mkdir, touch
     >>> from os.path import join
 
-    >>> d = tmpdir()
-    >>> base = join(d, 'base')
+    >>> tmp_dirpath = kf.mk_tmp_dir()
+    >>> base = join(tmp_dirpath, 'base')
 
-    >>> mkdir(join(base, 'foo'), recursive=True)
-    >>> touch(join(base, 'plop'))
+    >>> kf.mkdir(join(base, 'foo'), recursive=True)
+    >>> kf.touch(join(base, 'plop'))
 
-We test ``chown`` for root as it will be with uid and gid 0 for sure. There
-should be 3 chown issued.
 
-We will mock the legacy 'os.chown' to monitor when it is called::
+We will mock the legacy ``os.chown`` to see what happens under the hood::
 
     >>> import os
     >>> import minimock
     >>> m = minimock.mock('os.chown')
 
-And call our chown on user 'root'::
+And call ``kids``'s ``chown`` on user 'root'::
 
-    >>> from kids.file import chown
-    >>> chown(base, 'root', recursive=True)  ## doctest: +ELLIPSIS
+    >>> kf.chown(base, 'root', recursive=True)  ## doctest: +ELLIPSIS
     Called os.chown('/.../base', 0, 0)
     Called os.chown('/.../base/plop', 0, 0)
     Called os.chown('/.../base/foo', 0, 0)
@@ -106,8 +133,7 @@ Let's clean up our mess::
 
     >>> minimock.restore()
 
-    >>> from kids.file import rmtree
-    >>> rmtree(d)
+    >>> kf.rm(tmp_dirpath, recursive=True)
 
 
 Additional Shortcuts
@@ -121,22 +147,20 @@ Compressed file
 
 You should now read this easily::
 
-    >>> f = tmpfile(content="foo")
+    >>> filepath = kf.mk_tmp_file(content="foo")
 
 Let's zip this file::
 
-    >>> from kids.file import file_zip
-    >>> file_zip(f)
+    >>> zip_filepath = kf.zip(filepath)
 
 This created a new file along the previvous file. Let's check its contents::
 
-    >>> file_get_contents(f + '.gz', uncompress="zlib")
+    >>> kf.get_contents(zip_filepath, uncompress="zlib")
     'foo'
 
 And now, we can clean up our mess::
 
-    >>> unlink(f)
-    >>> unlink(f + ".gz")
+    >>> kf.rm(filepath, zip_filepath)
 
 
 Tests
