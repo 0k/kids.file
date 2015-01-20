@@ -132,23 +132,38 @@ def rm(*filenames, **options):
 unlink = rm
 
 
-def chown(path, user, group=None, recursive=False):
-    """Retrieve uid of user then change ownership of the path
-    """
+def chown(path, user=None, group=None, uid=None, gid=None, recursive=False):
+    """Retrieve uid of user then change ownership of the path"""
 
-    if group is None:
-        group = user
+    if all(e is None for e in (user, uid, group, gid)):
+        raise SyntaxError("No user nor group provided.")
 
-    uid = pwd.getpwnam(user).pw_uid
-    gid = grp.getgrnam(group).gr_gid
+    if user is not None and uid is not None:
+        raise SyntaxError("uid and user keyword arguments are exclusive.")
+
+    if group is not None and gid is not None:
+        raise SyntaxError("gid and group keyword arguments are exclusive.")
+
+    if uid is None:
+        if user is not None:
+            uid = pwd.getpwnam(user).pw_uid
+        else:
+            uid = -1
+
+    if gid is None:
+        if group is not None:
+            gid = grp.getgrnam(group).gr_gid
+        else:
+            gid = -1
 
     if not recursive:
         os.chown(path, uid, gid)
     else:
-        for root, _dirs, files in os.walk(path):
-            os.chown(root, uid, gid)
-            for cfile in files:
-                os.chown(os.path.join(root, cfile), uid, gid)
+        for filepath in sorted(os.listdir(path)):
+            fullname = os.path.join(path, filepath)
+            os.chown(fullname, uid, gid)
+            if os.path.isdir(fullname):
+                chown(fullname, uid=uid, gid=gid, recursive=recursive)
 
 
 def file_zip(filename, destination=''):

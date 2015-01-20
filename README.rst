@@ -120,7 +120,10 @@ Let's now create a small tree directory (using ``mk_tmp_dir``, ``mkdir``,
     >>> base = join(tmp_dirpath, 'base')
 
     >>> kf.mkdir(join(base, 'foo'), recursive=True)
+    >>> kf.mkdir([join(base, 'foo', 'bar1'),
+    ...           join(base, 'foo', 'bar2')])
     >>> kf.touch(join(base, 'plop'))
+    >>> kf.touch(join(base, 'foo', 'bar1', 'README'))
 
 
 We will mock the legacy ``os.chown`` to see what happens under the hood::
@@ -131,10 +134,43 @@ We will mock the legacy ``os.chown`` to see what happens under the hood::
 
 And call ``kids``'s ``chown`` on user 'root'::
 
-    >>> kf.chown(base, 'root', recursive=True)  ## doctest: +ELLIPSIS
-    Called os.chown('/.../base', 0, 0)
-    Called os.chown('/.../base/plop', 0, 0)
-    Called os.chown('/.../base/foo', 0, 0)
+    >>> kf.chown(base, user='root', recursive=True)  ## doctest: +ELLIPSIS
+    Called os.chown('.../base/foo', 0, -1)
+    Called os.chown('.../base/foo/bar1', 0, -1)
+    Called os.chown('.../base/foo/bar1/README', 0, -1)
+    Called os.chown('.../base/foo/bar2', 0, -1)
+    Called os.chown('.../base/plop', 0, -1)
+
+It support numerical ids if necessary::
+
+    >>> kf.chown(base, gid=0)  ## doctest: +ELLIPSIS
+    Called os.chown('.../base', -1, 0)
+
+Is equivalent to::
+
+    >>> kf.chown(base, group='root')  ## doctest: +ELLIPSIS
+    Called os.chown('.../base', -1, 0)
+
+You should of course avoid setting uid and user at the same time::
+
+    >>> kf.chown(base, uid=0, user='root')  ## doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    SyntaxError: uid and user keyword arguments are exclusive.
+
+Same for group and gid::
+
+    >>> kf.chown(base, group='root', gid=0)  ## doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    SyntaxError: gid and group keyword arguments are exclusive.
+
+And you must set at least a group or user (numerically or not)::
+
+    >>> kf.chown(base)  ## doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    SyntaxError: No user nor group provided.
 
 Let's clean up our mess::
 
