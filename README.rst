@@ -17,6 +17,13 @@ modules location.
 It is, for now, a very humble package.
 
 
+Maturity
+========
+
+This code is in alpha stage. It wasn't tested on Windows. API may change.
+This is more a draft for an ongoing reflection.
+
+
 Documentation
 =============
 
