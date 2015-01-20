@@ -179,3 +179,10 @@ def file_zip(filename, destination=''):
 
 ## aliasing, because still not sure of the naming convention
 zip = file_zip  ## pylint: disable=W0622
+
+
+def basename(filename, suffix=None):
+    bname = os.path.basename(filename)
+    if suffix and bname.endswith(suffix):
+        bname = bname[0:-len(suffix)]
+    return bname

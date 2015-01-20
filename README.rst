@@ -179,6 +179,17 @@ Let's clean up our mess::
     >>> kf.rm(tmp_dirpath, recursive=True)
 
 
+Basename
+========
+
+There's a full basename implementation:
+
+     >>> kf.basename("/path/foo.bar", ".bar")
+     'foo'
+     >>> kf.basename("/path/foo.bar")
+     'foo.bar'
+
+
 Additional Shortcuts
 ====================
 
