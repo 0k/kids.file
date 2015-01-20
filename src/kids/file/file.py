@@ -19,7 +19,7 @@ if PY3:
     unicode = str
     bytes = bytes
     basestring = (str,bytes)
-else:
+else:  ## pragma: no cover
     class FileNotFoundError(OSError):
         pass
 
@@ -42,7 +42,7 @@ def file_get_contents(filename, binary=False, encoding=None, uncompress=None):
         if isinstance(s, bytes) and not binary:
             ## in PY3, gzip.open doesn't encode the output:
             s = s.decode(locale.getpreferredencoding())
-    else:
+    else:  ## pragma: no cover
         with open_action(filename, mode) as f:
             s = f.read()
         if encoding:
@@ -118,12 +118,12 @@ def rm(*filenames, **options):
             if not force:
                 if PY3:
                     raise
-                else:
+                else:  ## pragma: no cover
                     raise FileNotFoundError(str(e))
         elif e.errno == 21:
             if PY3:
                 raise
-            else:
+            else:  ## pragma: no cover
                 raise IsADirectoryError(str(e))
         else:
             raise

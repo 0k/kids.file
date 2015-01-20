@@ -2,11 +2,21 @@
 kids.file
 =========
 
-.. image:: https://pypip.in/v/kids.file/badge.png
-    :target: https://pypi.python.org/pypi/kids.file
+.. image:: http://img.shields.io/pypi/v/kids.file.svg?style=flat
+   :target: https://pypi.python.org/pypi/kids.file/
+   :alt: Latest PyPI version
 
-.. image:: https://secure.travis-ci.org/0k/kids.file.png?branch=master
-    :target: http://travis-ci.org/0k/kids.file
+.. image:: http://img.shields.io/pypi/dm/kids.file.svg?style=flat
+   :target: https://pypi.python.org/pypi/kids.file/
+   :alt: Number of PyPI downloads
+
+.. image:: http://img.shields.io/travis/0k/kids.file/master.svg?style=flat
+   :target: https://travis-ci.org/0k/kids.file/
+   :alt: Travis CI build status
+
+.. image:: http://img.shields.io/coveralls/0k/kids.file/master.svg?style=flat
+   :target: https://coveralls.io/r/0k/kids.file
+   :alt: Test coverage
 
 
 This very small module is part of KIDS (Keep It Dead Simple), and propose some
@@ -94,8 +104,8 @@ files and subdirectories (as would shell ``rm`` on a Unix like system shell)::
 
 It supports also multiple files::
 
-    >>> filepath1 = kf.mk_tmp_file(content='foo')
-    >>> filepath2 = kf.mk_tmp_file(content='bar')
+    >>> filepath1 = kf.mk_tmp_file()
+    >>> filepath2 = kf.mk_tmp_file()
     >>> kf.rm(filepath1, filepath2)
 
 And of course still catches bad usage, and tries to be clear about it::
