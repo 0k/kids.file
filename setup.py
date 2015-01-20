@@ -55,6 +55,6 @@ if "%%short-version%%".startswith("%%"):
 
 setup(
     setup_requires=['d2to1'],
-    extras_require={'test': ['nose', ]},
+    extras_require={'test': ['nose', 'minimock']},
     d2to1=True
 )
