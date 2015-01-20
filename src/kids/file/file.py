@@ -48,12 +48,16 @@ def file_get_contents(filename, binary=False, encoding=None, uncompress=None):
             s = s.decode(encoding)
     return s
 
+get_contents = file_get_contents
+
 
 def file_put_contents(filename, string):
     """Write string to filename."""
 
     with open(filename, 'w') as f:
         f.write(string)
+
+put_contents = file_put_contents
 
 
 def mkdir(dirs, recursive=False, mode=None):
