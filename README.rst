@@ -19,8 +19,8 @@ kids.file
    :alt: Test coverage
 
 
-This very small module is part of KIDS (Keep It Dead Simple), and propose some
-python coding shorcuts on very common tasks. Original tasks I've shortcuted
+This very small module is part of KIDS (Keep It Dead Simple), and proposes some
+python coding shortcuts on very common tasks. Original tasks I've shortcuted
 often requires to know 2 to 10 lines of python or special cases or different
 modules location.
 
