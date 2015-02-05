@@ -218,6 +218,42 @@ Given a path, it'll return the absolute path::
 if you don't give the ``cwd`` argument, it'll default to current
 working directory.
 
+
+File
+----
+
+File objects in python only offers to read line by line which are for
+some reason, delimited by ``\n`` (or equivalent). This is quite
+arbitrary, and so ``File`` is an adaptor on any file object to offer
+the ability to read based on any delimiter.
+
+To show how it work we'll use ``filify`` which takes a string and
+returns a file object containing the string. (Yes, this is StringIO,
+but with additional PY3 love).
+
+    >>> from kids.file import File, filify
+
+To use ``File``, you should use it as an adaptor, this means you give
+him a file object, and it'll return his object that will make the
+bridge between his new API and the old API::
+
+    >>> f = File(filify("a-b-c-d"))
+
+As read provides an iterator, here a convenient function to get the
+contents::
+
+    >>> def show(l):
+    ...     print(", ".join(l))
+
+So this is quite straightforward::
+
+    >>> show(f.read(delimiter="-"))
+    a, b, c, d
+
+This should work with very large file or records and is very handy for instance
+to parse file (like stdout) that use ``NUL`` separated fields.
+
+
 Additional Shortcuts
 ====================
 
