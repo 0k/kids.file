@@ -182,7 +182,27 @@ zip = file_zip  ## pylint: disable=W0622
 
 
 def basename(filename, suffix=None):
+    """Return the filename without dirpath and given possible suffix(es)
+
+    Very similar to command line in UNIX world::
+
+        >>> filename = '/a/b/toto.py'
+        >>> print(basename(filename, '.py'))
+        toto
+
+    Support multiple suffixes, first suffix that matches the end of
+    the string wins::
+
+        >>> filename = '/a/b/toto.pyc'
+        >>> print(basename(filename, ('.py', '.pyc')))
+        toto
+
+    """
     bname = os.path.basename(filename)
-    if suffix and bname.endswith(suffix):
-        bname = bname[0:-len(suffix)]
+    if suffix:
+        if not isinstance(suffix, (list, tuple)):
+            suffix = [suffix]
+        for s in suffix:
+            if bname.endswith(s):
+                return bname[0:-len(s)]
     return bname

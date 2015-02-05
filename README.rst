@@ -190,15 +190,21 @@ Let's clean up our mess::
 
 
 Basename
-========
+--------
 
-There's a full basename implementation:
+There's a full basename implementation::
 
      >>> kf.basename("/path/foo.bar", ".bar")
      'foo'
      >>> kf.basename("/path/foo.bar")
      'foo.bar'
 
+Note that you can provide multiple suffixes::
+
+     >>> kf.basename("/path/foo.bar", (".foo", ".bar"))
+     'foo'
+
+Only the first matching the end will be removed.
 
 Additional Shortcuts
 ====================
