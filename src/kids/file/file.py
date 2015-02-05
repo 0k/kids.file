@@ -206,3 +206,14 @@ def basename(filename, suffix=None):
             if bname.endswith(s):
                 return bname[0:-len(s)]
     return bname
+
+
+def normpath(path, cwd=None):
+    """path can be absolute or relative, if relative it uses the cwd given as
+    param.
+
+    """
+    if os.path.isabs(path):
+        return path
+    cwd = cwd if cwd else os.getcwd()
+    return os.path.normpath(os.path.join(cwd, path))

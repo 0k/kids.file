@@ -206,6 +206,18 @@ Note that you can provide multiple suffixes::
 
 Only the first matching the end will be removed.
 
+
+normpath
+--------
+
+Given a path, it'll return the absolute path::
+
+    >>> kf.normpath('../tata' , cwd='/tmp/toto')
+    '/tmp/tata'
+
+if you don't give the ``cwd`` argument, it'll default to current
+working directory.
+
 Additional Shortcuts
 ====================
 
