@@ -1,5 +1,5 @@
 NAME="kids.file"
-DESCRIPTION="Kids file management library"
+DESCRIPTION="Kids file management library."
 EMAIL="valentin.lab@kalysto.org"
-AUTHOR="Valentin LAB"
+AUTHOR="Valentin Lab"
 AUTHOR_EMAIL="$AUTHOR <$EMAIL>"

@@ -1,6 +1,6 @@
-=========
+=========================
 kids.file
-=========
+=========================
 
 .. image:: http://img.shields.io/pypi/v/kids.file.svg?style=flat
    :target: https://pypi.python.org/pypi/kids.file/

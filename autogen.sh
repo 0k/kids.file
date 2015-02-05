@@ -129,10 +129,10 @@ prepare_files() {
 ## LOAD CONFIG
 ##
 
-if [ -e .package ]; then
+if [ -e ./.package ]; then
     . ./.package
 else
-    echo "'./package' file is missing."
+    echo "'./.package' file is missing."
     exit 1
 fi
 
