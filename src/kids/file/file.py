@@ -10,7 +10,9 @@ import grp
 import gzip
 import shutil
 import locale
-
+import itertools
+import inspect
+import collections
 
 PY3 = sys.version_info[0] >= 3
 
@@ -25,6 +27,188 @@ else:  ## pragma: no cover
 
     class IsADirectoryError(OSError):
         pass
+
+
+##
+## Part of upcoming kids.inspect
+##
+
+
+def get_arg_spec(f):
+    args, varargs, keywords, defaults = inspect.getargspec(f)
+    defaults = [] if defaults is None else defaults
+    defaults = collections.OrderedDict(
+        reversed(list(
+            (k, v)
+            for k, v in __builtins__["zip"](reversed(args), reversed(defaults)))))
+    return args, varargs, keywords, defaults
+
+
+def get_valued_prototype(f, a, kw):
+    """Returns an ordered dict of the label/value received by given function
+
+
+    Returns the mapping applied to the function::
+
+       >>> get_valued_prototype(lambda a, b: None, [1, 2], {})
+       OrderedDict([('a', 1), ('b', 2)])
+
+    So this means 'a' will be valuated with 1, etc...
+
+    default values
+    --------------
+
+    It works also if you have default values::
+
+       >>> get_valued_prototype(lambda a, b, c=None: None, [1, 2], {})
+       OrderedDict([('a', 1), ('b', 2), ('c', None)])
+
+       >>> get_valued_prototype(lambda a, b, c=None: None, [1, 2, 3], {})
+       OrderedDict([('a', 1), ('b', 2), ('c', 3)])
+
+    keyword values
+    --------------
+
+       >>> get_valued_prototype(
+       ...     lambda a, b=None, c=None: None,
+       ...     [1, ], {'c': 3})
+       OrderedDict([('a', 1), ('b', None), ('c', 3)])
+
+    """
+    args, _varargs, _keywords, defaults = get_arg_spec(f)
+    a = list(a)
+    if defaults:
+        a.extend(defaults.values())
+    res = collections.OrderedDict(
+        (label, a[idx]) for idx, label in enumerate(args))
+    if kw:
+        for k, v in kw.items():
+            res[k] = v
+    return res
+
+
+def call_with_valued_prototype(f, valued_prototype):
+    """Call and return the result of the given function applied to prototype
+
+
+    For instance, here, we will call the lambda with the given values::
+
+        >>> call_with_valued_prototype(
+        ...     lambda a, b: "a: %s, b: %s" % (a, b),
+        ...     {'a': 1, 'b': 2})
+        'a: 1, b: 2'
+
+    If you fail valuating all the necessary values, it should bail out with
+    an exception::
+
+        >>> call_with_valued_prototype(
+        ...     lambda a, b: "a: %s, b: %s" % (a, b),
+        ...     {'a': 1, 'c': 2})
+        Traceback (most recent call last):
+        ...
+        ValueError: Missing value for argument 'b'.
+
+    If you provide wrong values, it should fail as if you called it yourself::
+
+        >>> call_with_valued_prototype(
+        ...     lambda a, b: "a: %s, b: %s" % (a, b),
+        ...     {'a': 1, 'b': 2, 'foo': 'bar'})
+        Traceback (most recent call last):
+        ...
+        TypeError: '<lambda>' got unexpecteds keywords argument foo
+
+    """
+    args, _varargs, _keywords, defaults = get_arg_spec(f)
+    build_args = []
+    valued_prototype = valued_prototype.copy()
+    for arg in args:
+        if arg in valued_prototype:
+            value = valued_prototype.pop(arg)
+        else:
+            try:
+                value = defaults[arg]
+            except KeyError:
+                raise ValueError("Missing value for argument %r." % arg)
+        build_args.append(value)
+    if len(valued_prototype):
+        raise TypeError("%r got unexpecteds keywords argument %s"
+                        % (f.__name__, ", ".join(valued_prototype.keys())))
+    return f(*build_args)
+
+## part of upcoming kids.decorator
+
+
+def multi(margs):
+    """Demultiply execution of a function along given argument.
+
+    This offers support on specified argument of multiple values.
+
+    For instance::
+
+        >>> @multi('x')
+        ... def foo(x):
+        ...     print("I like %s." % x)
+
+    Normal call is preserved::
+
+        >>> foo('apples')
+        I like apples.
+
+    But now we can provide lists to the first argument, and this will
+    call the underlying function for each subvalues::
+
+        >>> foo(['carrot', 'steak', 'banana'])
+        I like carrot.
+        I like steak.
+        I like banana.
+
+    You can actualy given also multiple argument to ``mutli`` itself to
+    specify several argument to support expantion::
+
+        >>> @multi(['x', 'y'])
+        ... def bar(x, y):
+        ...     print("%s likes %s." % (x, y))
+
+    Normal call is preserved::
+
+        >>> bar('Jane', 'apples')
+        Jane likes apples.
+
+    But multiple calls are supported in both arguments::
+
+        >>> bar(['Jane', 'Cheetah', 'Tarzan'], ['apples', 'banana'])
+        Jane likes apples.
+        Jane likes banana.
+        Cheetah likes apples.
+        Cheetah likes banana.
+        Tarzan likes apples.
+        Tarzan likes banana.
+
+    Please also notice that multi will return None whatever the actual
+    results of the inner function.
+
+    """
+    if not isinstance(margs, (tuple, list)):
+        margs = [margs]
+
+    def decorator(f):
+        def _f(*a, **kw):
+            prototype = get_valued_prototype(f, a, kw)
+            all_mvalues = [prototype[marg] for marg in margs]
+            all_mvalues = [v if isinstance(v, (tuple, list)) else [v]
+                           for v in all_mvalues]
+            ret = []
+            for mvalues in itertools.product(*all_mvalues):
+                prototype.copy()
+                prototype.update(dict(__builtins__["zip"](margs, mvalues)))
+                ret.append(call_with_valued_prototype(f, prototype))
+        return _f
+    return decorator
+
+
+##
+## Actual code
+##
 
 
 ## XXXvlab: I don't like all these arguments...
@@ -61,24 +245,22 @@ def file_put_contents(filename, string):
 put_contents = file_put_contents
 
 
-def mkdir(dirs, recursive=False, mode=None):
-    if isinstance(dirs, basestring):
-        dirs = [dirs]
+@multi('dir')
+def mkdir(dir, recursive=False, mode=None):
     args = () if mode is None else (mode, )
-    for d in dirs:
-        if recursive:
-            os.makedirs(d, *args)
-        else:
-            os.mkdir(d, *args)
+    if recursive:
+        os.makedirs(dir, *args)
+    else:
+        os.mkdir(dir, *args)
 
 
+## From stackoverflow:
+## http://stackoverflow.com/questions/1158076/implement-touch-using-python
+@multi('fname')
 def touch(fname):
-    """Create file if not existent
-
-    Note that it doesn't change access time.
-
-    """
-    open(fname, 'a').close()
+    """Create file if not existent"""
+    with open(fname, 'a'):
+        os.utime(fname, None)
 
 
 def tmpfile(content=None):
@@ -96,17 +278,8 @@ mk_tmp_file = tmpfile
 mk_tmp_dir = tmpdir = tempfile.mkdtemp
 
 
-def rm(*filenames, **options):
-    force = options.pop("force", False)
-    recursive = options.pop("recursive", False)
-    if len(options):
-        raise SyntaxError(
-            "Unknown keyword argument %s." % (", ".join("%r" % k for k in options.keys())))
-    if len(filenames) != 1 or isinstance(filenames[0], list):
-        for filename in filenames:
-            rm(filename, force=force, recursive=recursive)
-        return
-    filename = filenames[0]
+@multi('filename')
+def rm(filename, force=False, recursive=False):
     try:
         if recursive:
             shutil.rmtree(filename)
@@ -132,6 +305,7 @@ def rm(*filenames, **options):
 unlink = rm
 
 
+@multi('path')
 def chown(path, user=None, group=None, uid=None, gid=None, recursive=False):
     """Retrieve uid of user then change ownership of the path"""
 

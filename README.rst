@@ -106,14 +106,14 @@ It supports also multiple files::
 
     >>> filepath1 = kf.mk_tmp_file()
     >>> filepath2 = kf.mk_tmp_file()
-    >>> kf.rm(filepath1, filepath2)
+    >>> kf.rm([filepath1, filepath2])
 
 And of course still catches bad usage, and tries to be clear about it::
 
     >>> kf.rm(filepath1, foo=True)
     Traceback (most recent call last):
     ...
-    SyntaxError: Unknown keyword argument 'foo'.
+    TypeError: 'rm' got unexpecteds keywords argument foo
 
 
 chown, mkdir, touch
@@ -133,7 +133,9 @@ Let's now create a small tree directory (using ``mk_tmp_dir``, ``mkdir``,
     >>> kf.mkdir([join(base, 'foo', 'bar1'),
     ...           join(base, 'foo', 'bar2')])
     >>> kf.touch(join(base, 'plop'))
-    >>> kf.touch(join(base, 'foo', 'bar1', 'README'))
+    >>> kf.touch([join(base, 'foo', 'bar1', 'README'), ])
+
+Notice that both ``mkdir`` and ``touch`` support multiple files at once.
 
 
 We will mock the legacy ``os.chown`` to see what happens under the hood::
