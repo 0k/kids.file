@@ -8,6 +8,8 @@ from .file import file_get_contents, file_put_contents, tmpfile, tmpdir, \
      rm, file_zip, mkdir, touch, chown, basename, get_contents, \
      put_contents, mk_tmp_dir, mk_tmp_file, zip, normpath
 
+from . import chk
+
 
 PY3 = sys.version_info[0] >= 3
 
@@ -20,6 +22,7 @@ else:  ## pragma: no cover
 
 if PY3:
     from io import BytesIO
+
     def filify(s):
         _obj = BytesIO()
         _obj.write(s.encode(_preferred_encoding))
@@ -104,3 +107,6 @@ class File(object):
 
     def close(self):
         return self._file.close()
+
+    def flush(self):
+        self._file.flush()

@@ -221,6 +221,36 @@ if you don't give the ``cwd`` argument, it'll default to current
 working directory.
 
 
+is_empty, exists
+----------------
+
+Given a file path, it'll return a boolean, and usage is quite
+straightforward::
+
+    >>> tmpdir = kf.mk_tmp_dir()
+
+    >>> foo = os.path.join(tmpdir, "foo")
+    >>> kf.chk.exists(foo)
+    False
+    >>> try:
+    ...     kf.chk.is_empty(foo)
+    ... except Exception as e:
+    ...     print(str(e))
+    [Errno 2] No such file or directory: '...foo'
+
+    >>> kf.touch(foo)
+    >>> kf.chk.exists(foo)
+    True
+    >>> kf.chk.is_empty(foo)
+    True
+
+    >>> kf.put_contents(foo, "hello")
+    >>> kf.chk.is_empty(foo)
+    False
+
+    >>> kf.rm(tmpdir, recursive=True)
+
+
 File
 ----
 

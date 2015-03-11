@@ -391,3 +391,5 @@ def normpath(path, cwd=None):
         return path
     cwd = cwd if cwd else os.getcwd()
     return os.path.normpath(os.path.join(cwd, path))
+
+
