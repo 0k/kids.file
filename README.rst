@@ -66,7 +66,7 @@ remove files
 
 To remove files, you can use ``rm`` (or ``rm`` which is an alias).
 
-This version works as python ``rm`` with some added usefull behaviors:::
+This version works as python ``rm`` with some added usefull behaviors::
 
     >>> kf.rm(filepath)
 
@@ -261,7 +261,7 @@ the ability to read based on any delimiter.
 
 To show how it work we'll use ``filify`` which takes a string and
 returns a file object containing the string. (Yes, this is StringIO,
-but with additional PY3 love).
+but with additional PY3 love)::
 
     >>> from kids.file import File, filify
 
