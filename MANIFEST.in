@@ -1,2 +1,2 @@
-include *.rst
-recursive-include src/ *
+graft src
+include *.rst LICENSE
